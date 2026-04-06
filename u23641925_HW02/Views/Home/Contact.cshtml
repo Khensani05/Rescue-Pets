@@ -1,0 +1,121 @@
+﻿@model u23641925_HW02.Models.PetUserViewModel
+
+@{
+    ViewBag.Title = "Donations";
+}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shadows+Into+Light&display=swap" rel="stylesheet">
+
+<main aria-labelledby="title">
+
+    <h2 class="title">Donate Now!</h2>
+
+    <br />
+
+    <p class="why">
+        <h5 class="dntlt">What we do</h5>
+        <div class="textwhy">
+            We aspire to create a safe haven for all the animals we have rescued,<br />
+            giving them the love, care, and protection they deserve. Your support can  <br />
+            make this vision a reality. By donating to Rescue Pets, you help provide food, <br />
+            medical care, and shelter for animals in need, ensuring they have a chance at a <br />
+            better life. Every contribution, big or small, brings us closer to a world where <br />
+            every rescued animal finds safety, comfort, and hope.
+        </div>
+    </p>
+
+
+    <div class="card dnt">
+        <div class="card-body">
+            <h6 class="dntlt">Fill in details: Donations start from R5</h6>
+            <form method="post" action="@Url.Action("AddDonation", "Home")">
+                <select id="user-name" name="User_ID">
+                    <option value="">Select a Username</option>
+                    @foreach (var item in Model.Users)
+                    {
+                        <option value="@item.User_ID" data-phone="@item.User_PNumber">
+                            @item.User_Name
+                        </option>
+                    }
+                </select>
+
+                <select id="user-number" disabled name="User_PNumber">
+                    <option value="">Select a Phone Number</option>
+                </select>
+
+                <input type="number" id="donation-amount" name="Amount" placeholder="R 0.00" step="1" min="5" />
+
+                <br /><br />
+
+                <input type="submit" value="Donate Now" id="btnDonate" />
+            </form>
+        </div>
+    </div>
+
+    <br />
+    <br />
+
+    <div class="progress">
+        <div id="myBar" class="progress-bar bg-success" role="progressbar"
+             style="width:@((Model.TotalRaised / Model.DonationGoal) * 100)%"
+             aria-valuenow="@Model.TotalRaised" aria-valuemin="0" aria-valuemax="@Model.DonationGoal">
+        </div>
+    </div>
+    <p id="progress-text">Raised: R @Model.TotalRaised / R @Model.DonationGoal</p>
+
+    @if (TempData["Message"] != null)
+    {
+        <div class="alert">@TempData["Message"]</div>
+    }
+
+</main>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Filter phone number dropdown
+    $("#user-name").change(function () {
+        const selectedOption = $("#user-name option:selected");
+        const phone = selectedOption.data("phone");
+        const numberSelect = $("#user-number");
+
+        numberSelect.empty();
+        if (phone) {
+            numberSelect.append(`<option value="${phone}">${phone}</option>`);
+            numberSelect.prop("disabled", false);
+        } else {
+            numberSelect.append(`<option value="">Select a Phone Number</option>`);
+            numberSelect.prop("disabled", true);
+        }
+    });
+
+    // Simple form validation
+    $("#btnDonate").click(function () {
+        let amount = parseFloat($("#donation-amount").val());
+        let userId = $("#user-name").val();
+
+        if (isNaN(amount) || amount < 5) {
+            alert("Please enter a valid donation amount of at least R5.00.");
+            return false;
+        }
+
+        if (!userId) {
+            alert("Please select a user in the dropdown.");
+            return false;
+        }
+    });
+
+    $(document).ready(function() {
+        const bar = $("#myBar");
+        const totalRaised = @Model.TotalRaised;
+        const donationGoal = @Model.DonationGoal;
+        const percent = Math.min((totalRaised / donationGoal) * 100, 100);
+
+        // Animate the width from 0 to the percent
+        bar.css("width", "0%");
+        bar.animate({ width: percent + "%" }, 1000); // 1 second animation
+
+        // Update the text
+        $("#progress-text").text(`Raised: R${totalRaised.toFixed(2)} / R${donationGoal.toFixed(2)}`);
+    });
+</script>

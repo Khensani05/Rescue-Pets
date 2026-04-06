@@ -1,0 +1,93 @@
+﻿@model u23641925_HW02.Models.PetUserViewModel
+
+@{
+    ViewBag.Title = "PetDetails";
+}
+<link href="~/Content/Site.css" rel="stylesheet" />
+
+<main id="PetDetailed">
+    <h2>Hi, I'm @Model.Pet.Pet_Name ☺️ </h2>
+
+    <h4>Looking for my forever home with my forever family</h4> 
+
+    <br />
+
+    <h6 style="font-family: 'Baloo 2', cursive;">📍@Model.Pet.Location_Name  &nbsp; Age: @Model.Pet.Pet_Age  &nbsp; Weight: @Model.Pet.Pet_Weight  &nbsp; @Model.Pet.Gender_Name</h6>
+
+    <br />
+
+    <div class="p-descript">
+
+        <div class="p-image">
+            <img src="data:image/png;base64,@Model.Pet.ImageRaw" alt="@Model.Pet.Pet_Name" style="width:150px;height:150px;" />
+        </div>
+
+        <br />
+        <br />
+
+        <div class="p-text">
+            <p style="font-size:20px;">@Model.Pet.Long_Descript</p>
+
+            <br />
+
+            <div id="adopt-pet" class="card-body">
+                <p style=" font-family: 'Baloo 2', cursive; font-size: 15px;">Enter Your Details to adopt this pet</p>
+
+                @if (Model.Pet.Availabilty == "Adopted")
+                {
+                    <p style="color:red;">🐾 This pet has already been adopted.</p>
+                }else
+                {
+                    <form method="post" action="@Url.Action("DoAdoptUpdate", "Home")">
+                        <select name="User_ID" id="user-name" style="font-family: 'Baloo 2', cursive;">
+                            <option value="">Select a Username</option>
+                            @foreach (var item in Model.Users)
+                            {
+                                <option value="@item.User_ID" data-phone="@item.User_PNumber">@item.User_Name</option>
+                            }
+                        </select>
+
+                        <select id="user-number" style="font-family: 'Baloo 2', cursive;" disabled>
+                            <option value="">Select a Phone Number</option>
+                        </select>
+
+                        <input type="hidden" name="Pet_Name" value="@Model.Pet.Pet_Name" />
+                        <input type="hidden" name="Pet_ID" value="@Model.Pet.Pet_ID" />
+
+                        <br />
+                        <input type="submit" value="Adopt Now" id="btnAdopt" />
+                    </form>
+                }
+
+                @if (ViewBag.Message != null)
+                {
+                    <p style="color: green;">@ViewBag.Message</p>
+                }
+            </div>
+
+        </div>
+    </div>
+
+    <a href="javascript:history.go(-1)" style="left: -20px;">
+        <button id="btnBack">Back</button>
+    </a>
+
+</main>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    document.getElementById("user-name").addEventListener("change", function () {
+        var selected = this.options[this.selectedIndex];
+        var phone = selected.getAttribute("data-phone");
+        var numberSelect = document.getElementById("user-number");
+
+        numberSelect.innerHTML = "";
+        if (phone) {
+            numberSelect.innerHTML = `<option value="${phone}">${phone}</option>`;
+            numberSelect.disabled = false;
+        } else {
+            numberSelect.innerHTML = `<option value="">Select a Phone Number</option>`;
+            numberSelect.disabled = true;
+        }
+    });
+</script>

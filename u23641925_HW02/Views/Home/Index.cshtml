@@ -1,0 +1,48 @@
+﻿@model List<u23641925_HW02.Models.Adopted>
+
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<link href="~/Content/Site.css" rel="stylesheet" />
+<main>
+    <h2 class="title">Adopt Happiness</h2>
+    <h5>From Furry Friends to Scaly Friends - A Pet For Everyone </h5>
+    <br />
+    <br />
+    <br />
+
+    @*section to show pets adopted*@ 
+    <section id="adp" data-bs-spy="scroll" data-bs-offset="50">
+        <p>
+            Pets Adopted: <span id="number"> @ViewBag.TotalAdopted </span> 
+        </p>
+
+        <div id="adp-list">
+            @*display adpotion details in table*@
+            @foreach (var item in Model)
+            {
+                <p>
+                    @item.User_Name adopted @item.Pet_Name
+                </p>
+            }
+        </div>
+    </section>
+
+    @*section to show about*@
+    <section id="about">
+        <h6 class="abt">What we do</h6>
+
+        <p>
+            We are all about helping the animals in need.
+            Our mission to make sure every animal
+            helped gets a permanent loving home.
+        </p>
+
+        <button id="btnPetpg" onclick="window.location.href='https://localhost:44358/Home/ShowPets'">
+            View Pets
+        </button>
+    </section>
+
+    <img src="~/Images/home2.png" alt="Group of pets" />
+</main>

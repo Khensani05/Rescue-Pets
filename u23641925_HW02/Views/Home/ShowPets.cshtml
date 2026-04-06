@@ -1,0 +1,188 @@
+﻿@model u23641925_HW02.Models.PetUserViewModel
+
+@{
+    ViewBag.Title = "Pets";
+}
+<link href="~/Content/Site.css" rel="stylesheet" />
+
+<h2 class="title">Pets</h2>
+
+@*search elements*@
+
+<form style="font-family: 'Baloo 2', cursive;">
+
+    <select id="selectPetType" class="form-control" style="width: 200px; display: inline-block; margin-right: 10px;">
+        <option value=""> Select Type </option>
+        @foreach (var item in Model.Types)
+        {
+            <option value="@item.Type_ID" data-phone="@item.Type_Name">
+                @item.Type_Name
+            </option>
+        }
+    </select>
+
+    <select id="selectPetBreed" class="form-control" style="width: 200px; display: inline-block; margin-right: 10px;">
+        <option value=""> Select Breed </option>
+        @foreach (var item in Model.Breeds)
+        {
+            <option class="breed-option"
+                    value="@item.Breed_ID"
+                    data-type-id="@item.Type_ID">
+                @item.Breed_Name
+            </option>
+        }
+
+    </select>
+
+
+    <select id="selectPetLocation" class="form-control" style="width: 200px; display: inline-block; margin-right: 10px;">
+        <option value=""> Select Location </option>
+        @foreach (var item in Model.Locations)
+        {
+            <option value="@item.Location_ID" data-phone="@item.Location_Name">
+                @item.Location_Name
+            </option>
+        }
+    </select>
+
+    <input type="submit" value="Search" class="search" id="btnSearch" />
+    <input type="submit" value="Clear" class="search" id="btnClear" />
+    <input type="submit" value="Show Available" id="btnShow" />
+</form>
+
+
+<br />
+<br />
+
+<div class="row">
+
+    @*to show no results*@
+    <div id="noResults" style="display:none; font-weight:bold; margin-top:20px;">
+        No results found.
+    </div>
+
+    @foreach (var item in Model.Pets)
+    {
+        <div class="card"
+             data-type="@item.Type_ID"
+             data-breed="@item.Breed_ID"
+             data-location="@item.Location_ID"
+             data-availability="@item.Availabilty">
+
+            <div id="displaypet">
+                <div class="card-header @(item.Availabilty == "Available" ? "available" : "not-available")">
+                    @item.Availabilty
+                </div>
+
+                <div>
+                    <img src="data:image/png;base64,@item.ImageRaw" alt="@item.Pet_Name" style="width:100px;height:100px;" />
+                    <br />
+                    <p style="font-size: medium; font-weight: bold; text-align:center;">@item.Pet_Name </p>
+                    <p style="text-align: center;">
+                        @item.Pet_Age &nbsp;&nbsp;&nbsp;&nbsp; @item.Pet_Weight &nbsp;&nbsp;&nbsp;&nbsp; @item.Gender_Name
+                    </p>
+                    Location: @item.Location_Name
+                    <br />
+                    @item.Short_Descript
+                    <br />
+                </div>
+
+                <a href="@Url.Action("PetDetails", "Home", new { id = item.Pet_ID })" class="btn btn-primary btnMore">
+                    Read More
+                </a>
+                <hr />
+                    Posted by: @item.User_Name
+            </div>
+        </div>
+    }
+
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+    $(document).ready(function () {
+
+        //dropdowns: breed and type
+        const $breedDropdown = $("#selectPetBreed");
+        const allBreeds = $breedDropdown.find("option").clone();
+
+        // filter using pet type
+        $("#selectPetType").change(function () {
+            const selectedType = $(this).val();
+            $breedDropdown.html(allBreeds);
+            if (selectedType) {
+                $breedDropdown.find("option").each(function () {
+                    const typeId = $(this).data("type-id");
+                    if ($(this).val() !== "" && typeId != selectedType) {
+                        $(this).remove();
+                    }
+                });
+            }
+        });
+
+        // Search button function
+        $("#btnSearch").click(function (e) {
+            e.preventDefault();
+            const typeVal = $("#selectPetType").val();
+            const breedVal = $breedDropdown.val();
+            const locationVal = $("#selectPetLocation").val();
+            let anyVisible = false;
+
+            $(".card").each(function () {
+                const card = $(this);
+                const cardType = card.data("type").toString();
+                const cardBreed = card.data("breed").toString();
+                const cardLocation = card.data("location").toString();
+
+                const matchesType = !typeVal || cardType === typeVal;
+                const matchesBreed = !breedVal || cardBreed === breedVal;
+                const matchesLocation = !locationVal || cardLocation === locationVal;
+
+                if (matchesType && matchesBreed && matchesLocation) {
+                    card.show();
+                    anyVisible = true;
+                } else {
+                    card.hide();
+                }
+            });
+
+            $("#noResults").toggle(!anyVisible);
+        });
+
+        // Show Available button
+        $("#btnShow").click(function (e) {
+            e.preventDefault();
+            $(".card").each(function () {
+                const card = $(this);
+                const availability = card.data("availability");
+
+                if (availability === "Available") {
+                    card.show();
+                    card.find(".btnMore").show(); // show read more buttons fro available pets only
+                } else {
+                    card.hide();
+                    card.find(".btnMore").hide(); // hide read more buttons fro pets in adopted 
+                }
+            });
+
+            $("#noResults").toggle($(".card:visible").length === 0);
+        });
+
+        // Clear button
+        $("#btnClear").click(function (e) {
+            e.preventDefault();
+            $("#selectPetType").val("");
+            $breedDropdown.html(allBreeds);
+            $breedDropdown.val("");
+            $("#selectPetLocation").val("");
+            $(".card").show();
+            $(".card").find(".btnMore").show(); // show read more buttons fro available pets only
+            $("#noResults").hide();
+        });
+
+    });
+
+
+</script>

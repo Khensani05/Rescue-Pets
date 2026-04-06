@@ -1,0 +1,231 @@
+﻿@model u23641925_HW02.Models.PetUserViewModel
+@{
+    ViewBag.Title = "Post A Pet";
+}
+<link href="~/Content/Site.css" rel="stylesheet" />
+
+<style>
+    .pet-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 20px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .pet-grid label {
+        font-weight: bold;
+    }
+
+    .pet-grid input,
+    .pet-grid select,
+    .pet-grid textarea {
+        width: 100%;
+    }
+</style>
+
+
+<main aria-labelledby="title" id="post">
+    <h2 class="title">Post Pet</h2>
+
+    <br />
+
+    @*do pet image*@
+    <form method="post" action="@Url.Action("DoUpdatePetPost", "Home")" enctype="multipart/form-data">
+
+        <div id="image-upload">
+            <img id="previewImage" src="~/Images/Logo.png" style="width: 220px; height: 200px;" />
+            <br />
+            <input type="file" id="petImageInput" name="PetImage" accept="image/*" />
+        </div>
+
+        <br />
+        <br />
+
+        <h5>Enter Your Details</h5>
+        @*for the user details*@
+        <div id="user-post">
+            @*dropdowns for the user*@
+
+            <select id="user-name" name="User_ID">
+                <option value="">Select a Username</option>
+                @foreach (var item in Model.Users)
+                {
+                    <option value="@item.User_ID" data-phone="@item.User_PNumber">
+                        @item.User_Name
+
+                    </option>
+                }
+            </select>
+
+            @*set to disabled and will be updated based the username chosen*@
+            <select id="user-number" disabled name="User_PNumber">
+                <option value="">Select a Phone Number</option>
+            </select>
+        </div>
+
+        <br />
+        <hr />
+        <br />
+
+        @*for the pet details*@
+        <h5>Enter Pet Details</h5>
+        <div id="pet-post">
+
+            <div class="pet-grid">
+                <div>
+                    <label>Pet Name</label>
+                    <input type="text" placeholder="e.g Paul" id="petInputName" name="Pet_Name" />
+                </div>
+
+                <div>
+                    <label>Pet Age</label>
+                    <br />
+                    <input type="text" placeholder="e.g 12 months" id="petInputAge" name="Pet_Age" />
+                    <p style="font-size: 10px;">please specify months/years</p>
+                </div>
+
+                <div>
+                    <label>Pet Weight</label>
+                    <input type="text" placeholder="e.g 12 kg" id="petInputWeight" name="Pet_Weight" />
+                    <p style="font-size: 10px;">please specify g/kg</p>
+                </div>
+
+                <div>
+                    <label>Pet Type</label>
+                    <select id="selectPetType" class="form-control" name="Type_ID">
+                        <option value=""> Select Type </option>
+                        @foreach (var item in Model.Types)
+                        {
+                            <option value="@item.Type_ID">@item.Type_Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div>
+                    <label>Pet Breed</label>
+                    <select id="selectPetBreed" class="form-control" name="Breed_ID">
+                        <option value=""> Select Breed </option>
+                        @foreach (var item in Model.Breeds)
+                        {
+                            <option class="breed-option"
+                                    value="@item.Breed_ID"
+                                    data-type-id="@item.Type_ID">
+                                @item.Breed_Name
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div>
+                    <label>Pet Location</label>
+                    <select id="selectPetLocation" class="form-control" name="Location_ID">
+                        <option value=""> Select Location </option>
+                        @foreach (var item in Model.Locations)
+                        {
+                            <option value="@item.Location_ID">@item.Location_Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div>
+                    <label>Pet Gender</label>
+                    <select id="selectPetGender" class="form-control" name="Gender_ID">
+                        <option value=""> Select Gender </option>
+                        @foreach (var item in Model.Genders)
+                        {
+                            <option value="@item.Gender_ID">@item.Gender_Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div>
+                    <label>Short Description (optional)</label>
+                    <textarea id="short-descript" name="Short_Descript"></textarea>
+                </div>
+
+                <div>
+                    <label>Long Description (optional)</label>
+                    <textarea id="long-descript" name="Long_Descript"></textarea>
+                </div>
+            </div>
+        </div>
+        <input type="submit" value="Post Pet" id="btnPost" />
+    </form>
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert">@ViewBag.Message</div>
+    }
+
+</main>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    //convert image to b64 to store in the db
+    let base64Image = "";
+
+    $("#petImageInput").change(function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            base64Image = event.target.result.split(",")[1]; // remove the prefix (data:image/png;base64,)
+            $("#previewImage").attr("src", event.target.result); // show preview
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // CRITICAL FIX: Ensure all DOM manipulation code runs only after the page is fully loaded.
+    $(document).ready(function() {
+
+        // Store all breed options globally once they are rendered.
+        // We use .not(':first-child') to exclude the initial "Select Breed" option.
+        const $allBreedOptions = $("#selectPetBreed").find('option').not(':first-child').clone();
+
+        // The initial "Select Breed" option
+        const $defaultBreedOption = $("#selectPetBreed").find('option:first-child').clone();
+
+        // 1. Initial State Setup: Remove all initial breed options except the default one
+        $("#selectPetBreed").find('option').not(':first-child').remove();
+
+
+        // function to filter the dropdown for the user (keep this as is)
+        $("#user-name").change(function () {
+            const selectedOption = $("#user-name option:selected");
+            const phone = selectedOption.data("phone");
+            const numberSelect = $("#user-number");
+
+            numberSelect.empty();
+            if (phone) {
+                numberSelect.append(`<option value="${phone}">${phone}</option>`);
+                numberSelect.prop("disabled", false);
+            } else {
+                numberSelect.append(`<option value="">Select a Phone Number</option>`);
+                numberSelect.prop("disabled", true);
+            }
+        });
+
+        // FUNCTION TO FILTER THE BREED BASED ON WHAT KIND OF TYPE WAS CHOSEN
+        $("#selectPetType").change(function () {
+            const selectedTypeId = $(this).val(); // Get the ID of the selected Type
+            const $breedDropdown = $("#selectPetBreed");
+
+            // 1. Clear the dropdown completely
+            $breedDropdown.empty();
+            $breedDropdown.append($defaultBreedOption.clone()); // Add back the default option
+            $breedDropdown.val(""); // Reset the selected value
+
+            if (selectedTypeId) {
+                // 2. Filter the cloned options and append only the matches
+                $allBreedOptions.filter(function () {
+                    // IMPORTANT: The data attribute on a cloned element might be a string, so compare strings
+                    return $(this).data('type-id').toString() === selectedTypeId.toString();
+                }).clone().appendTo($breedDropdown);
+            }
+        });
+});
+</script>
